@@ -1,0 +1,6 @@
+Chisa:/etc/vsftpd# cat user_conf/eiri
+# Tolak semua izin baca, tulis, maupun unduh
+write_enable=NO
+download_enable=NO
+# Hanya izinkan perintah login dan keluar, sisanya dilarang total
+cmds_allowed=USER,PASS,QUIT

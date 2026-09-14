@@ -1,0 +1,3 @@
+write_enable=NO
+download_enable=YES
+cmds_allowed=ABOR,CWD,LIST,MDTM,NLST,PASS,PASV,PORT,PWD,QUIT,RETR,SIZE,TYPE,USER
