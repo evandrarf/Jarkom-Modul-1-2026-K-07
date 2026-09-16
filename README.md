@@ -2,8 +2,8 @@
 
 ## Anggota Kelompok
 
-| Nama                   |        NRP |
-| :--------------------- | ---------: |
+| Nama                   | NRP        |
+| :--------------------- | :--------- |
 | Evandra Raditya Fauzan | 5027251001 |
 | Keisya Dira Anugerah   | 5027251055 |
 
