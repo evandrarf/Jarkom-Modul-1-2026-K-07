@@ -1,0 +1,51 @@
+220 mail.protocol7.co.jp ESMTP Postfix
+
+EHLO darkwired.net
+
+250-mail.protocol7.co.jp Hello
+
+MAIL FROM:<attacker@darkwired.net>
+
+250 2.1.0 Ok
+
+RCPT TO:<victim@protocol7.co.jp>
+
+250 2.1.5 Ok
+
+DATA
+
+354 End data with <CR><LF>.<CR><LF>
+
+From: attacker@darkwired.net
+To: victim@protocol7.co.jp
+Subject: URGENT: Your Wired account has been compromised
+Date: Thu, 10 Sep 2026 09:00:00 +0700
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+I have compromised your system through Protocol 7.
+
+I know that: pr0tocol_7_user - is your password!
+
+Your computer was infected with my private ransomware.
+I have access to all your files, emails, and The Wired accounts.
+I recorded everything through your NAVI terminal.
+
+If you do not pay me 2 BTC to the following address:
+bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+
+I give you 72 hours (3 days) to get the bitcoins and pay.
+After that, I will release everything to The Wired.
+
+Do not try to contact the Knights. They cannot help you.
+Let's all love Lain.
+
+MailClientID: 7719980706
+.
+
+
+250 2.0.0 Ok: queued
+
+QUIT
+
+221 2.0.0 Bye
