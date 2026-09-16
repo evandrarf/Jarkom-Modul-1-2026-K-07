@@ -1,1 +1,10 @@
-# Kelompok K-07
+# Kelompok K-07 Laporan Resmi Jarkom Modul 1
+
+## Anggota Kelompok
+
+| Nama                   |        NRP |
+| :--------------------- | ---------: |
+| Evandra Raditya Fauzan | 5027251001 |
+| Keisya Dira Anugerah   | 5027251055 |
+
+## Laporan Resmi
