@@ -1,0 +1,14 @@
+GET /navi_agent.exe HTTP/1.1
+Host: wired-update.net
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+Accept: */*
+Connection: keep-alive
+
+
+HTTP/1.1 200 OK
+Server: nginx/1.24.0
+Content-Type: application/octet-stream
+Content-Length: 396
+Content-Disposition: attachment; filename="navi_agent.exe"
+
+MZ................................................................................................................................................................................................................................................................This program cannot be run in DOS mode....................................................................................................
