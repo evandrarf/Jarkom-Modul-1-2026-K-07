@@ -17,6 +17,8 @@
 6. [Identifikasi Paket ICMP dan DNS](#6-identifikasi-paket-icmp-dan-dns)
 7. [FTP Server](#7-ftp-server)
 8. [Analisis Paket FTP](#8-analisis-paket-ftp)
+9. [Permission Denied 550](#9-permission-denied-550)
+10. [Analisis Ping Request](#10-analisis-ping-request)
 
 ## Laporan Resmi
 
@@ -341,9 +343,64 @@ Pada screenshot diatas dapat diliat jika terdapat 2 traffic, yang pertama adalah
 
 ![8-5](./images/8-5.png)
 
+Port Data TCP yang Dinegosiasikan pada Mode PASV
+
+Sesaat sebelum melakukan upload, client meminta untuk masuk ke mode pasif (PASV) agar server yang membuka port untuk transfer data. Pada paket nomor 201, server menyetujuinya dan membalas dengan IP beserta Port yang akan digunakan:
+
+- Respons PASV Server: 227 Entering Passive Mode (10,67,2,2,154,2).
+- Kalkulasi Port: Angka 154,2 di akhir representasi IP tersebut digunakan untuk menghitung port TCP yang dibuka. Rumusnya adalah (Angka Pertama × 256) + Angka Kedua. (154 × 256) + 2 = 39424 + 2 = 39426
+- Jadi, port data TCP yang dinegosiasikan dan digunakan untuk mentransfer file knigts_report.txt tersebut adalah Port 39426.
+
+![8-3](./images/8-6.png)
+
+### 9. Permission Denied 550
+
+User Mika berdasarkan konfigurasi hanya memiliki akses terhadap read file (download). Hal ini dapat dibuktikan ketika Node Mika mencoba untuk mengupload file baru dari node Mika.
+
+![9](./images/9-1.png)
+
+### 10. Analisis Ping Request
+
+Berikut merupakan traffic ICMP (Ping)
+
+![10](./images/10.png)
+
+Terlihat ada 154 packet yang mana merupakan 1 icmp req dan 1 icmp response, sehingga total req sesuai yaitu 77 req icmp.
+
+#### 1. Nilai ICMP Type dan Code
+
+Pada pertukaran paket ping (ICMP), terdapat dua jenis pesan yang terlibat:
+
+- Echo Request (Paket dikirim dari Knights ke Chisa): Memiliki nilai Type = 8 dan Code = 0.
+
+![10-2](./images/10-2.png)
+
+- Echo Reply (Paket balasan dari Chisa ke Knights): Memiliki nilai Type = 0 dan Code = 0.
+
+![10-3](./images/10-3.png)
+
+#### 2. Analisis Packet Loss
+
+Dalam pengujian ini, total sebanyak 77 paket (Echo Request) telah dikirimkan.
+
+- Total Request: 77 paket
+- Total Reply: 71 paket
+- Packet Lost: 6 paket
+- Packet Loss Ratio: 7,8%
+
+Terjadi sedikit packet loss (kehilangan paket) sebesar 7,8% di jaringan The Wired yang menandakan adanya sedikit gangguan atau drop di tengah rute pengiriman.
+
+#### 3. Analisis Round Trip Time (RTT / Latensi)
+
+Berdasarkan 71 paket yang berhasil berbalas, perhitungan durasi waktu perjalanan bolak-balik (RTT) antar node tercatat sebagai berikut:
+
+- Minimum RTT (min): 0,199 ms
+- Average RTT (avg / mean): 0,368 ms
+- Maximum RTT (max): 0,713 ms
+
+Rata-rata latensi tercatat sangat kecil (~0,3 ms) yang menandakan bahwa selain masalah packet loss di atas, kecepatan transfer jaringan secara umum sangat cepat dan stabil.
 
 ---
-
 
 ## 11. Analisis Kelemahan Protokol Telnet
 
@@ -356,9 +413,9 @@ telnet 10.67.2.2
 
 ![](images/11telnet.png)
 
-Dari hasil [capture](config/11-chisalogin), terlihat bahwa Telnet tidak mengenkripsi data transmisi apapun. Hal ini terbukti dari hasil Follow TCP Stream pada wireshark, username dan password terbaca sebagai plaintext tanpa enkripsi. 
+Dari hasil [capture](config/11-chisalogin), terlihat bahwa Telnet tidak mengenkripsi data transmisi apapun. Hal ini terbukti dari hasil Follow TCP Stream pada wireshark, username dan password terbaca sebagai plaintext tanpa enkripsi.
 
-Selain itu, setiap keystroke langsung dikirim ke server tanpa buffering, karena protokol ini dirancang untuk interactive terminal session di mana server perlu merespons setiap karakter secara real-time. Akibatnya,  attacker yang melakukan capture dapat merekonstruksi input pengguna secara utuh hanya dari urutan paket.
+Selain itu, setiap keystroke langsung dikirim ke server tanpa buffering, karena protokol ini dirancang untuk interactive terminal session di mana server perlu merespons setiap karakter secara real-time. Akibatnya, attacker yang melakukan capture dapat merekonstruksi input pengguna secara utuh hanya dari urutan paket.
 
 ## 12. Port Scanning dengan Netcat
 
@@ -417,7 +474,6 @@ Dari hasil capture, tidak ada kredensial yang terkirim melalui jaringan. Yang te
 
 ![](images/13-filter_ssh.png)
 
-
 ## 14. Analisis Serangan Brute-Force pada Web Alice
 
 Dari file capture `wired_bruteforce.pcapng`, diidentifikasi serangan brute-force terhadap form login pada web Alice.
@@ -428,11 +484,11 @@ Dengan filter `http.response`, ditemukan 52 percobaan POST dari attacker ke targ
 
 Sehingga hasil temuan dapat disimpulkan melalui tabel berikut:
 
-| Keterangan| Detail |
-|-|-|
-| IP Penyerang| 172.26.7.50 |
-| IP Target| 172.26.7.100 port 8080 |
-| Web Server| Apache/2.4.62 |
+| Keterangan    | Detail                      |
+| ------------- | --------------------------- |
+| IP Penyerang  | 172.26.7.50                 |
+| IP Target     | 172.26.7.100 port 8080      |
+| Web Server    | Apache/2.4.62               |
 | user:password | lain_admin:wired_pr0tocol_7 |
 
 Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{W1r3d_Brut3_H0yZsExJta1BCs3ArnWVuPx21}`
@@ -451,62 +507,55 @@ Left Shift + w = W
 .. dst.
 ```
 
-
 Keystroke yang berhasil direkonstruksi dari data HID mengungkap pesan rahasia:
 `Wired_Protocol_7_is_alive_2026`
 
-| Keterangan | Detail |
-|-|-|
-| Vendor ID | 046d |
-| Product ID | c31c|
-| Device Address | 7 |
+| Keterangan     | Detail                         |
+| -------------- | ------------------------------ |
+| Vendor ID      | 046d                           |
+| Product ID     | c31c                           |
+| Device Address | 7                              |
 | Secret Message | Wired_Protocol_7_is_alive_2026 |
-
 
 ![](images/15-usb.png)
 
 Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{USB_K3ystr0k3_dL44AUoovdlk9KE91tzbyjzO3}`
 
-
 ## 16. Analisis Pencurian File Malware melalui FTP
 
 Diberikan file capture `wired_ftp_theft.pcap` untuk identifikasi aktivitas pengunduhan file mencurigakan menggunakan FTP.
 
-Dengan filter `ftp.request.command == "RETR"`, ditemukan pengunduhan file `knights_payload.exe_ oleh attacker yang memiliki detail kredensial seperti [ini.](config/16-ftp-thief)
+Dengan filter `ftp.request.command == "RETR"`, ditemukan pengunduhan file `knights*payload.exe* oleh attacker yang memiliki detail kredensial seperti [ini.](config/16-ftp-thief)
 
-| Keterangan| Detail |
-|-|-|
-| IP Attacker | 198.51.100.7|
-| Username| knights_agent        |
-| Password | N4v1_s3cure_2026|
-| FTP Server | vsftpd 3.0.5|
-| File | knights_payload.exe |
-| Ukuran  | 524288 bytes  |
+| Keterangan  | Detail              |
+| ----------- | ------------------- |
+| IP Attacker | 198.51.100.7        |
+| Username    | knights_agent       |
+| Password    | N4v1_s3cure_2026    |
+| FTP Server  | vsftpd 3.0.5        |
+| File        | knights_payload.exe |
+| Ukuran      | 524288 bytes        |
 
 Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{FTP_Th3ft_dD5Dtocvo91O5гGC3Gip2kohC}`
-
 
 ## 17. Analisis Pengunduhan Malware melalui HTTP
 
 Terdapat payload berbahaya yang diinstall Eiri pada halaman web Alice di node-nya melalui HTTP dan dapat dianalisis dalam file capture `wired_http_c2.pcap`.
 
-Setelah melakukan filtering `http.request` dan melakukan http stream, ditemukan detail-detail yang bisa ditemukan [disini](config/17-payloadstream) dan alamat IP attacker dari source address 
+Setelah melakukan filtering `http.request` dan melakukan http stream, ditemukan detail-detail yang bisa ditemukan [disini](config/17-payloadstream) dan alamat IP attacker dari source address
 
 ![](images/17-ip.png)
 
 Sehingga ringkasan temuan dari file capture ini yaitu:
 
-| Keterangan| Detail |
-|-|-|
-| Domain (Host) | `wired-update.net` |
-| File Executable | navi_agent.exe |
-| Kode status HTTP| 200 |
-| IP Attacker | 203.0.113.42 |
-
+| Keterangan       | Detail             |
+| ---------------- | ------------------ |
+| Domain (Host)    | `wired-update.net` |
+| File Executable  | navi_agent.exe     |
+| Kode status HTTP | 200                |
+| IP Attacker      | 203.0.113.42       |
 
 Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{Navi_C2_D0wnl04d_3YIA2bqDaR53O6grIoj3DgFEH}`
-
- 
 
 ## 18. Analisis Penyebaran Malware melalui SMB
 
@@ -538,13 +587,13 @@ Setelah menggunakan filter `smtp`, terdapat 16 paket yang diantaranya berisikan 
 
 Dari pesan itu terdapat temuan yang diringkas menjadi:
 
-| Keterangan       | Detail |
-|------------------|--------|
-| Email Korban     |`victim@protocol7.co.jp`|
-| Password Bocor   |pr0tocol_7_user|
-| Jenis Malware    |Ransomware|
-| Batas Waktu      |3 hari/72h|
-| MailClientID     |7719980706|
+| Keterangan     | Detail                   |
+| -------------- | ------------------------ |
+| Email Korban   | `victim@protocol7.co.jp` |
+| Password Bocor | pr0tocol_7_user          |
+| Jenis Malware  | Ransomware               |
+| Batas Waktu    | 3 hari/72h               |
+| MailClientID   | 7719980706               |
 
 ![](images/19-smtp.png)
 
@@ -554,32 +603,27 @@ Validasi temuan pada socket server menghasilkan flag: `KOMJAR26 {SMTP_Ext0rt10n_
 
 ## 20. Analisis Komunikasi Malware Terenkripsi TLS
 
-Di soal ini, komunikasi malware disembunyikan di balik traffic HTTPS terenkripsi sehingga sebelum kita analisis file capture `wired_tls_decrypt.pcapng` perlu Session Key dari `keyslogfile.txt` untuk dipasangkan di field Wireshark bagian `(Pre)-Master-Secret log file` 
+Di soal ini, komunikasi malware disembunyikan di balik traffic HTTPS terenkripsi sehingga sebelum kita analisis file capture `wired_tls_decrypt.pcapng` perlu Session Key dari `keyslogfile.txt` untuk dipasangkan di field Wireshark bagian `(Pre)-Master-Secret log file`
 
 Setelah file berhasil di-decrypt, menggunakan fitur detail pada kolom di bagian bawah untuk menemukan versi TLS yang dinegoisasikan beserta IP server attacker.
-
 
 ![](images/20-tls-vers.webp)
 dan
 
-
 ![](images/20-ip.png)
-
-
 
 Lalu dengan filtering `http` ditemukan stream seperti pada [link ini.](config/20-decrypted)
 
-
 Sehingga tabel temuan dari soal ini adalah seperti berikut:
 
-| Keterangan      | Detail |
-|-----------------|--------|
-| Versi TLS       | TLSv1.2 |
-| Domain (SNI)    | example.com |
-| IP Server       |93.184.216.34|
-| User-Agent      |curl/7.62.0 |
-| HTTP Method     | HEAD |
-| Path            | / HTTP/1.1|
+| Keterangan   | Detail        |
+| ------------ | ------------- |
+| Versi TLS    | TLSv1.2       |
+| Domain (SNI) | example.com   |
+| IP Server    | 93.184.216.34 |
+| User-Agent   | curl/7.62.0   |
+| HTTP Method  | HEAD          |
+| Path         | / HTTP/1.1    |
 
 ![](images/20-tls.png)
 
