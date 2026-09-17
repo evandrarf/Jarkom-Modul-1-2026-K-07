@@ -1,3 +1,7 @@
+#!/bin/bash
+mkdir -p /etc/vsftpd/user_conf
+
+cat << 'CONF' > /etc/vsftpd/vsftpd.conf
 # Example config file /etc/vsftpd.conf
 #
 # The default compiled in settings are fairly paranoid. This sample file
@@ -119,3 +123,23 @@ allow_writeable_chroot=YES
 local_root=/var/wired/data
 seccomp_sandbox=NO
 user_config_dir=/etc/vsftpd/user_conf
+CONF
+
+cat << 'CONF' > /etc/vsftpd/user_conf/eiri
+# Tolak semua izin baca, tulis, maupun unduh
+write_enable=NO
+download_enable=NO
+# Hanya izinkan perintah login dan keluar, sisanya dilarang total
+cmds_allowed=USER,PASS,QUIT
+CONF
+
+cat << 'CONF' > /etc/vsftpd/user_conf/mika
+write_enable=NO
+download_enable=YES
+cmds_allowed=ABOR,CWD,LIST,MDTM,NLST,PASS,PASV,PORT,PWD,QUIT,RETR,SIZE,TYPE,USER
+CONF
+
+cat << 'CONF' > /etc/vsftpd/user_conf/alice
+write_enable=YES
+download_enable=YES
+CONF

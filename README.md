@@ -19,6 +19,16 @@
 8. [Analisis Paket FTP](#8-analisis-paket-ftp)
 9. [Permission Denied 550](#9-permission-denied-550)
 10. [Analisis Ping Request](#10-analisis-ping-request)
+11. [Analisis Kelemahan Protokol Telnet](#11-analisis-kelemahan-protokol-telnet)
+12. [Port Scanning dengan Netcat](#12-port-scanning-dengan-netcat)
+13. [SSH Tanpa Password (Public Key Authentication)](#13-ssh-tanpa-password-public-key-authentication)
+14. [Analisis Serangan Brute-Force pada Web Alice](#14-analisis-serangan-brute-force-pada-web-alice)
+15. [Analisis Serangan USB HID (Keystroke Injection)](#15-analisis-serangan-usb-hid-keystroke-injection)
+16. [Analisis Pencurian File Malware melalui FTP](#16-analisis-pencurian-file-malware-melalui-ftp)
+17. [Analisis Pengunduhan Malware melalui HTTP](#17-analisis-pengunduhan-malware-melalui-http)
+18. [Analisis Penyebaran Malware melalui SMB](#18-analisis-penyebaran-malware-melalui-smb)
+19. [Analisis Email Pemerasan melalui SMTP](#19-analisis-email-pemerasan-melalui-smtp)
+20. [Analisis Komunikasi Malware Terenkripsi TLS](#20-analisis-komunikasi-malware-terenkripsi-tls)
 
 ## Laporan Resmi
 
@@ -76,7 +86,7 @@ Topologi Jaringan dibuat menjadi seperti gambar di atas. Sebuah router dengan na
 - Netmask: 255.255.255.0
 - Default Gateway: 10.67.3.1/24
 
-Semua konfigurasi interface terdapat pada folder [config](./config)
+Semua konfigurasi interface terdapat pada folder [scripts](./scripts)
 
 ### 2. Network Address Translation
 
@@ -225,7 +235,7 @@ Terjadi 3 kali pertukaran (Request & Reply).
 
 Persiapan FTP Server, pada node Chisa. Untuk FTP Server dapat diinstall menggunakan package manager `apk` pada linux `alpine` tersebut.
 
-Kami juga sudah membuat sebuah automation script untuk melakukan ftp setup yaitu pada [ftp_setup.sh](./config/7/ftp_setup.sh)
+Kami juga sudah membuat sebuah automation script untuk melakukan ftp setup yaitu pada [ftp_setup.sh](./scripts/soal_7/chisa_ftp_setup.sh)
 
 Di script tersebut melakukan penginstallan ftp server menggunakan `apk`.
 
@@ -268,7 +278,7 @@ done
 
 Kode diatas akan melakukan setup group, user, dan direktori yang akan digunakan untuk ftp
 
-Lalu pada file [copy_config.sh](./config/7/copy_config.sh) akan melakukan copy konfigurasi hak akses user terhadap server ftp.
+Lalu pada file [copy_config.sh](./scripts/soal_7/chisa_ftp_config.sh) akan melakukan copy konfigurasi hak akses user terhadap server ftp.
 
 Beberapa file tersebut kami tambahkan pada direktori `/root` dan dijalankan pada init.sh dengan tujuan agar konfigurasi ftp akan berjalan otomatis ketika server restart.
 
@@ -313,7 +323,7 @@ cmds_allowed=USER,PASS,QUIT
 
 ### 8. Analisis Paket FTP
 
-Analisis paket ftp pada file wireshark [report_ftp.pcapng](./config/report_ftp.pcapng) ketika node knights melakukan upload file [knight_reports.txt](./config/knight_reports.txt) ke ftp `Chisa`.
+Analisis paket ftp pada file wireshark [report_ftp.pcapng](./captures/report_ftp.pcapng) ketika node knights melakukan upload file [knight_reports.txt](./artifacts/knights_report.txt) ke ftp `Chisa`.
 
 ![8](./images/8.png)
 
@@ -413,7 +423,7 @@ telnet 10.67.2.2
 
 ![](images/11telnet.png)
 
-Dari hasil [capture](config/11-chisalogin), terlihat bahwa Telnet tidak mengenkripsi data transmisi apapun. Hal ini terbukti dari hasil Follow TCP Stream pada wireshark, username dan password terbaca sebagai plaintext tanpa enkripsi.
+Dari hasil [capture](captures/11-chisalogin), terlihat bahwa Telnet tidak mengenkripsi data transmisi apapun. Hal ini terbukti dari hasil Follow TCP Stream pada wireshark, username dan password terbaca sebagai plaintext tanpa enkripsi.
 
 Selain itu, setiap keystroke langsung dikirim ke server tanpa buffering, karena protokol ini dirancang untuk interactive terminal session di mana server perlu merespons setiap karakter secara real-time. Akibatnya, attacker yang melakukan capture dapat merekonstruksi input pengguna secara utuh hanya dari urutan paket.
 
@@ -525,7 +535,7 @@ Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{USB_K3ystr0k3_dL
 
 Diberikan file capture `wired_ftp_theft.pcap` untuk identifikasi aktivitas pengunduhan file mencurigakan menggunakan FTP.
 
-Dengan filter `ftp.request.command == "RETR"`, ditemukan pengunduhan file `knights*payload.exe* oleh attacker yang memiliki detail kredensial seperti [ini.](config/16-ftp-thief)
+Dengan filter `ftp.request.command == "RETR"`, ditemukan pengunduhan file `knights*payload.exe* oleh attacker yang memiliki detail kredensial seperti [ini.](captures/16-ftp-thief)
 
 | Keterangan  | Detail              |
 | ----------- | ------------------- |
@@ -542,7 +552,7 @@ Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{FTP_Th3ft_dD5Dto
 
 Terdapat payload berbahaya yang diinstall Eiri pada halaman web Alice di node-nya melalui HTTP dan dapat dianalisis dalam file capture `wired_http_c2.pcap`.
 
-Setelah melakukan filtering `http.request` dan melakukan http stream, ditemukan detail-detail yang bisa ditemukan [disini](config/17-payloadstream) dan alamat IP attacker dari source address
+Setelah melakukan filtering `http.request` dan melakukan http stream, ditemukan detail-detail yang bisa ditemukan [disini](captures/17-payloadstream) dan alamat IP attacker dari source address
 
 ![](images/17-ip.png)
 
@@ -561,7 +571,7 @@ Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{Navi_C2_D0wnl04d
 
 Terdapat file capture `wired_smb_transfer.pcapng`, untuk menganalisis penyebaran malware menggunakan protokol file sharing SMB.
 
-Karena filtering `smb` kosong, filtering `smb2` khususnya `CREATE request [System32/wired_trojan_payload.exe]` memberikan hasil stream seperti [ini](config/18-smbprotocol) dan detail IP
+Karena filtering `smb` kosong, filtering `smb2` khususnya `CREATE request [System32/wired_trojan_payload.exe]` memberikan hasil stream seperti [ini](captures/18-smbprotocol) dan detail IP
 
 ![](images/18-requestmal.png)
 
@@ -583,7 +593,7 @@ Validasi temuan pada socket server menghasilkan flag: `KOMJAR26 {SMB_Tr4nsf3r_zl
 
 Terdapat pesan ancaman pemerasan melalui protokol SMTP tanpa enkripsi, file `wired_smtp_threat.pcap` dapat dianalisis untuk menggali informasi dari pesan tersebut.
 
-Setelah menggunakan filter `smtp`, terdapat 16 paket yang diantaranya berisikan threat mail tanpa enkripsi yang dapat dilihat [disini.](config/19-letsAllLoveLain)
+Setelah menggunakan filter `smtp`, terdapat 16 paket yang diantaranya berisikan threat mail tanpa enkripsi yang dapat dilihat [disini.](captures/19-letsAllLoveLain)
 
 Dari pesan itu terdapat temuan yang diringkas menjadi:
 
@@ -612,7 +622,7 @@ dan
 
 ![](images/20-ip.png)
 
-Lalu dengan filtering `http` ditemukan stream seperti pada [link ini.](config/20-decrypted)
+Lalu dengan filtering `http` ditemukan stream seperti pada [link ini.](captures/20-decrypted)
 
 Sehingga tabel temuan dari soal ini adalah seperti berikut:
 
