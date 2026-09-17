@@ -15,6 +15,7 @@
 4. [Firewall dan iptables](#4-firewall-dan-iptables)
 5. [Initial Script](#5-initial-script)
 6. [Identifikasi Paket ICMP dan DNS](#6-identifikasi-paket-icmp-dan-dns)
+7. [FTP Server](#ftp-server)
 
 ## Laporan Resmi
 
@@ -182,6 +183,12 @@ Berdasarkan file traffic.pcapng yang digenerate oleh script traffic_protocol7.sh
 
 #### 1. Traffic DNS (Domain Name System)
 
+Filter wireshark dapat menggunakan display filter berikut:
+
+```wireshark
+dns or icmp
+```
+
 Terlihat adanya aktivitas resolving domain (pencarian alamat IP) ke dua server DNS berbeda (Google 8.8.8.8 dan Cloudflare 1.1.1.1):
 
 - Ke 8.8.8.8:
@@ -210,3 +217,89 @@ Terjadi 3 kali pertukaran (Request & Reply).
 (Seluruh ping berhasil dibalas (Reply) oleh server tujuan).
 
 ![6](./images/6.png)
+
+### 7. FTP Server
+
+Persiapan FTP Server, pada node Chisa. Untuk FTP Server dapat diinstall menggunakan package manager `apk` pada linux `alpine` tersebut.
+
+Kami juga sudah membuat sebuah automation script untuk melakukan ftp setup yaitu pada [ftp_setup.sh](./config/7/ftp_setup.sh)
+
+Di script tersebut melakukan penginstallan ftp server menggunakan `apk`.
+
+```bash
+grep -qxF "/bin/false" /etc/shells || echo "/bin/false" >> /etc/shells
+```
+
+script akan mendaftarkan `/bin/false` ke file `/etc/shells`.
+
+```bash
+# 3. Buat group ftpaccess jika belum ada
+echo "[+] Membuat group ftpaccess..."
+getent group ftpaccess >/dev/null || addgroup ftpaccess
+
+# 4. Buat folder chroot base dan shared folder data
+echo "[+] Menyiapkan struktur direktori /var/wired/data..."
+mkdir -p /var/wired/data
+
+# Atur permission base folder (tidak boleh writable oleh user biasa)
+chown root:root /var/wired
+chmod 755 /var/wired
+
+# Atur permission folder data sesuai permintaan (775 & owner ftpaccess)
+chown root:ftpaccess /var/wired/data
+chmod 775 /var/wired/data
+chmod g+s /var/wired/data
+
+# 5. Buat user alice, mika, eiri dengan password rahasia123
+USERS="alice mika eiri"
+PASS="rahasia123"
+
+for u in $USERS; do
+    echo "[+] Menyiapkan user: $u..."
+    if ! id -u "$u" >/dev/null 2>&1; then
+        adduser -h /var/wired -s /bin/false -G ftpaccess -D "$u"
+    fi
+    echo "$u:$PASS" | chpasswd
+done
+```
+
+Kode diatas akan melakukan setup group, user, dan direktori yang akan digunakan untuk ftp
+
+Lalu pada file [copy_config.sh](./config/7/copy_config.sh) akan melakukan copy konfigurasi hak akses user terhadap server ftp.
+
+- User alice akan memiliki hak akses **RW (Read Write)**
+
+```bash
+write_enable=YES
+download_enable=YES
+```
+
+- User Mika memiliki hak akses **read only**
+
+```bash
+write_enable=NO
+download_enable=YES
+cmds_allowed=ABOR,CWD,LIST,MDTM,NLST,PASS,PASV,PORT,PWD,QUIT,RETR,SIZE,TYPE,USER
+```
+
+- User Eiri tidak memiliki hak akses.
+
+```bash
+# Tolak semua izin baca, tulis, maupun unduh
+write_enable=NO
+download_enable=NO
+# Hanya izinkan perintah login dan keluar, sisanya dilarang total
+cmds_allowed=USER,PASS,QUIT
+```
+
+#### 1. Proof User Alice
+
+![ftp-rw](./images/ftp-rw.png)
+
+#### 2. Proof User Mika
+
+![ftp-ro](./images/ftp-ro.png)
+
+#### 3. Proof User Eiri
+
+![ftp-no](./images/ftp-no.png)
