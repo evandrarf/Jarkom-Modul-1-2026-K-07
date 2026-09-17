@@ -15,7 +15,8 @@
 4. [Firewall dan iptables](#4-firewall-dan-iptables)
 5. [Initial Script](#5-initial-script)
 6. [Identifikasi Paket ICMP dan DNS](#6-identifikasi-paket-icmp-dan-dns)
-7. [FTP Server](#ftp-server)
+7. [FTP Server](#7-ftp-server)
+8. [Analisis Paket FTP](#8-analisis-paket-ftp)
 
 ## Laporan Resmi
 
@@ -267,6 +268,10 @@ Kode diatas akan melakukan setup group, user, dan direktori yang akan digunakan 
 
 Lalu pada file [copy_config.sh](./config/7/copy_config.sh) akan melakukan copy konfigurasi hak akses user terhadap server ftp.
 
+Beberapa file tersebut kami tambahkan pada direktori `/root` dan dijalankan pada init.sh dengan tujuan agar konfigurasi ftp akan berjalan otomatis ketika server restart.
+
+![7](./images/7.png)
+
 - User alice akan memiliki hak akses **RW (Read Write)**
 
 ```bash
@@ -303,3 +308,35 @@ cmds_allowed=USER,PASS,QUIT
 #### 3. Proof User Eiri
 
 ![ftp-no](./images/ftp-no.png)
+
+### 8. Analisis Paket FTP
+
+Analisis paket ftp pada file wireshark [report_ftp.pcapng](./config/report_ftp.pcapng) ketika node knights melakukan upload file [knight_reports.txt](./config/knight_reports.txt) ke ftp `Chisa`.
+
+![8](./images/8.png)
+
+Dengan perintah berikut kami dapat mengetahui paket mana yang sedang melakukan `STOR` di ftp server
+
+```wireshark
+ftp.request.command == "STOR"
+```
+
+![8](./images/8-3.png)
+
+Pada wireshark dapat diliat terdapat 1 traffic yang sedang melakukan `STOR`. Dari `source` dan `destination` dapat diverifikasi jika traffic tersebut merupakan traffic yang benar dari operasi tadi. `10.67.3.2` (Knights) dan `10.67.2.2` (Chisa)
+
+Apabila kita melihat detail traffic terdapat keterangan perintah apa dan file apa yang sedang diupload.
+
+![8](./images/8-2.png)
+
+Untuk melihat detail kode status sukses server dapat menggunakan command.
+
+```
+ftp.response.code == 226
+```
+
+![8-4](./images/8-4.png)
+
+Pada screenshot diatas dapat diliat jika terdapat 2 traffic, yang pertama adalah balasan sukses dari command `ls` atau directory listing dan yang kedua adalah balasan dari file `STOR` sebelumnya.
+
+![8-5](./images/8-5.png)
