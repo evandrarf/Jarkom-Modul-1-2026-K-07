@@ -402,7 +402,7 @@ Rata-rata latensi tercatat sangat kecil (~0,3 ms) yang menandakan bahwa selain m
 
 ---
 
-## 11. Analisis Kelemahan Protokol Telnet
+### 11. Analisis Kelemahan Protokol Telnet
 
 Untuk membuktikan kelemahan Telnet, dilakukan koneksi dari node Eiri ke node Chisa menggunakan akun `phantom_user` dengan password `wired_ghost` yang telah dikonfigurasi dulu menggunakan di Node Chisa. Proses ini di-capture menggunakan `tcpdump` untuk dianalisis di Wireshark.
 
@@ -417,7 +417,7 @@ Dari hasil [capture](config/11-chisalogin), terlihat bahwa Telnet tidak mengenkr
 
 Selain itu, setiap keystroke langsung dikirim ke server tanpa buffering, karena protokol ini dirancang untuk interactive terminal session di mana server perlu merespons setiap karakter secara real-time. Akibatnya, attacker yang melakukan capture dapat merekonstruksi input pengguna secara utuh hanya dari urutan paket.
 
-## 12. Port Scanning dengan Netcat
+### 12. Port Scanning dengan Netcat
 
 Untuk mensimulasikan skenario di mana Alice mendeteksi layanan tersembunyi pada node Knights, terlebih dahulu dikonfigurasi dua layanan pada node Knights
 
@@ -451,7 +451,7 @@ Dua paket SYN-ACK dikembalikan oleh Knights, masing-masing untuk port 22 dan por
 
 Satu paket RST-ACK dikembalikan untuk port 7777 karena tidak ada proses yang aktif listening pada port tersebut dan tidak ada firewall yang membatasi. Hal ini menandakan bahwa port tertutup dan tidak ada layanan yang berjalan di port tersebut.
 
-## 13. SSH Tanpa Password (Public Key Authentication)
+### 13. SSH Tanpa Password (Public Key Authentication)
 
 Dikonfigurasi akun `mika_admin` di node Knights yang hanya menerima koneksi SSH berbasis public key dari node Mika.
 
@@ -474,7 +474,7 @@ Dari hasil capture, tidak ada kredensial yang terkirim melalui jaringan. Yang te
 
 ![](images/13-filter_ssh.png)
 
-## 14. Analisis Serangan Brute-Force pada Web Alice
+### 14. Analisis Serangan Brute-Force pada Web Alice
 
 Dari file capture `wired_bruteforce.pcapng`, diidentifikasi serangan brute-force terhadap form login pada web Alice.
 
@@ -493,7 +493,7 @@ Sehingga hasil temuan dapat disimpulkan melalui tabel berikut:
 
 Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{W1r3d_Brut3_H0yZsExJta1BCs3ArnWVuPx21}`
 
-## 15. Analisis Serangan USB HID (Keystroke Injection)
+### 15. Analisis Serangan USB HID (Keystroke Injection)
 
 Terdapat perangkat keyboard berbahaya pada node Alice yang dapat dianalisis melalui file `wired_usb_hid.pcap` dilakukan filtering umum terlebih dahulu seperti `usb` dan cari detail dari `DEVICE DESCRIPTOR response`
 
@@ -521,7 +521,7 @@ Keystroke yang berhasil direkonstruksi dari data HID mengungkap pesan rahasia:
 
 Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{USB_K3ystr0k3_dL44AUoovdlk9KE91tzbyjzO3}`
 
-## 16. Analisis Pencurian File Malware melalui FTP
+### 16. Analisis Pencurian File Malware melalui FTP
 
 Diberikan file capture `wired_ftp_theft.pcap` untuk identifikasi aktivitas pengunduhan file mencurigakan menggunakan FTP.
 
@@ -538,7 +538,7 @@ Dengan filter `ftp.request.command == "RETR"`, ditemukan pengunduhan file `knigh
 
 Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{FTP_Th3ft_dD5Dtocvo91O5гGC3Gip2kohC}`
 
-## 17. Analisis Pengunduhan Malware melalui HTTP
+### 17. Analisis Pengunduhan Malware melalui HTTP
 
 Terdapat payload berbahaya yang diinstall Eiri pada halaman web Alice di node-nya melalui HTTP dan dapat dianalisis dalam file capture `wired_http_c2.pcap`.
 
@@ -557,7 +557,7 @@ Sehingga ringkasan temuan dari file capture ini yaitu:
 
 Validasi temuan pada socket server menghasilkan flag: `KOMJAR26{Navi_C2_D0wnl04d_3YIA2bqDaR53O6grIoj3DgFEH}`
 
-## 18. Analisis Penyebaran Malware melalui SMB
+### 18. Analisis Penyebaran Malware melalui SMB
 
 Terdapat file capture `wired_smb_transfer.pcapng`, untuk menganalisis penyebaran malware menggunakan protokol file sharing SMB.
 
@@ -579,7 +579,7 @@ Validasi temuan pada socket server menghasilkan flag: `KOMJAR26 {SMB_Tr4nsf3r_zl
 
 ---
 
-## 19. Analisis Email Pemerasan melalui SMTP
+### 19. Analisis Email Pemerasan melalui SMTP
 
 Terdapat pesan ancaman pemerasan melalui protokol SMTP tanpa enkripsi, file `wired_smtp_threat.pcap` dapat dianalisis untuk menggali informasi dari pesan tersebut.
 
@@ -601,7 +601,7 @@ Validasi temuan pada socket server menghasilkan flag: `KOMJAR26 {SMTP_Ext0rt10n_
 
 ---
 
-## 20. Analisis Komunikasi Malware Terenkripsi TLS
+### 20. Analisis Komunikasi Malware Terenkripsi TLS
 
 Di soal ini, komunikasi malware disembunyikan di balik traffic HTTPS terenkripsi sehingga sebelum kita analisis file capture `wired_tls_decrypt.pcapng` perlu Session Key dari `keyslogfile.txt` untuk dipasangkan di field Wireshark bagian `(Pre)-Master-Secret log file`
 
