@@ -13,6 +13,8 @@
 2. [Network Address Translation](#2-network-address-translation)
 3. [Static Routing](#3-static-routing)
 4. [Firewall dan iptables](#4-firewall-dan-iptables)
+5. [Initial Script](#5-initial-script)
+6. [Identifikasi Paket ICMP dan DNS](#6-identifikasi-paket-icmp-dan-dns)
 
 ## Laporan Resmi
 
@@ -89,6 +91,122 @@ Jaringan akan dipetakan ke interface tujuan dari jaringan tersebut. Harapannya c
 10.67.3.0/24 dev eth3 proto kernel scope link src 10.67.3.1
 ```
 
+#### Bukti jaringan sudah terhubung
+
+1. Knights ke network 10.67.1.0/24
+   ![1](./images/3/knights-1.png)
+
+2. Knights ke network 10.67.2.0/24
+   ![1](./images/3/knights-2.png)
+
+3. Knights ke network 10.67.3.0/24
+   ![1](./images/3/knights-3.png)
+
+4. Alice ke network 10.67.1.0/24
+   ![1](./images/3/alice-1.png)
+
+5. Alice ke network 10.67.2.0/24
+   ![1](./images/3/alice-2.png)
+
+6. Alice ke network 10.67.3.0/24
+   ![1](./images/3/alice-3.png)
+
+7. Mika ke network 10.67.1.0/24
+   ![1](./images/3/mika-1.png)
+
+8. Alice ke network 10.67.2.0/24
+   ![1](./images/3/mika-2.png)
+
+9. Alice ke network 10.67.3.0/24
+   ![1](./images/3/mika-3.png)
+
+\*untuk client di network yang sama tidak kami cantumkan pada lapres
+
 ### 4. Firewall dan iptables
 
 Meskipun router sudah terhubung dengan sebuah adapter NAT. Client yang terhubung tidak bisa langsung terkoneksi ke internet. Router perlu dikonfigurasi dengan sebuah firewall untuk meneruskan akses internet yang dimiliki router ke client yang terhubung.
+
+```bash
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+sysctl -w net.ipv4.ip_forward=1
+```
+
+Command di atas akan menambahkan ke chain POSTROUTING dari interface eth0, masquarade akan menggantikan ip lokal ke ip public milik interface eth0 dari router `Lain`.
+
+Agar tiap client bisa menerjemahkan domain ke alamat ip, maka tiap client wajib menambahkan `nameserver` yang digunakan, dalam hal ini dapat menggunakan `8.8.8.8` sebagai default dns/nameserver.
+
+```bash
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+```
+
+Berikut bukti client dapat terhubung ke internet dan melakukan ping ke google.com
+
+![8.8.8.8](./images/4-1.png)
+
+![google.com](./images/4.png)
+
+### 5. Initial Script
+
+Untuk memastikan keseluruhan konfigurasi jaringan tidak menghilang ketika terjadinya restart maka kami membuat beberapa initial script untuk melakukan setup jaringan.
+
+Initial script pertama adalah terkait iptables/firewall dan juga dns.
+
+Kami menambahkan script berikut ke dalam file /root/init.sh
+
+```bash
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+sysctl -w net.ipv4.ip_forward=1
+```
+
+![5](./images/5-1.png)
+
+Untuk kebutuhan pengecekan/verifikasi interface dan table NAT, kami membuat file baru yaitu `cek_status.sh`
+
+```bash
+#!/bin/bash
+echo "=== RINGKASAN INTERFACE ==="
+ip -br a
+echo ""
+echo "=== TABEL NAT POSTROUTING ==="
+iptables -t nat -L POSTROUTING -v -n
+```
+
+Tak lupa kami memasukkan script running file `/root/cek_status.sh` ke dalam `/root/init.sh`
+
+![5-2](./images/5-2.png)
+
+### 6. Identifikasi Paket ICMP dan DNS
+
+Berdasarkan file traffic.pcapng yang digenerate oleh script traffic_protocol7.sh, terdapat 48 paket yang tertangkap oleh filter dns or  
+ icmp. Berikut adalah rincian aktivitasnya:
+
+#### 1. Traffic DNS (Domain Name System)
+
+Terlihat adanya aktivitas resolving domain (pencarian alamat IP) ke dua server DNS berbeda (Google 8.8.8.8 dan Cloudflare 1.1.1.1):
+
+- Ke 8.8.8.8:
+  - Query A (IPv4) dan AAAA (IPv6) untuk its.ac.id, google.com, dan example.com.
+  - Query PTR (Reverse DNS) untuk IP 103.94.189.5 (milik its.ac.id).
+
+    ![6-2](./images/6-2.png)
+    ![6-3](./images/6-3.png)
+
+- Ke 1.1.1.1:
+- - Query A (IPv4) dan AAAA (IPv6) untuk github.com dan cloudflare.com.
+  - Terdapat balasan (response) dari masing-masing server DNS yang memberikan IP Address untuk domain-domain tersebut, baik berupa record
+    A maupun SOA (Start of Authority) ketika record yang dicari tidak tersedia/membutuhkan otoritas lebih lanjut.
+
+#### 2. Traffic ICMP (Internet Control Message Protocol)
+
+Setelah beberapa alamat IP berhasil didapatkan via DNS, terjadi pengiriman ping (Echo Request & Reply) dari IP sumber 10.67.1.2 (Mika) ke tiga
+tujuan yang berbeda:
+
+- Ping ke IP 1.1.1.1: Terjadi 5 kali pertukaran (Request & Reply).
+- Ping ke IP 8.8.8.8: Terjadi 5 kali pertukaran (Request & Reply).
+- Ping ke IP 103.94.189.5 (IP dari its.ac.id yang didapat melalui DNS sebelumnya):
+
+Terjadi 3 kali pertukaran (Request & Reply).
+
+(Seluruh ping berhasil dibalas (Reply) oleh server tujuan).
+
+![6](./images/6.png)
