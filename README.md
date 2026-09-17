@@ -72,11 +72,11 @@ Topologi Jaringan dibuat menjadi seperti gambar di atas. Sebuah router dengan na
 
 Semua konfigurasi interface terdapat pada folder [config](./config)
 
-## 2. Network Address Translation
+### 2. Network Address Translation
 
 Pada router Lain, interface `eth0` dapat dikoneksikan ke sebuah adapter NAT untuk mendapatkan akses internet.
 
-## 3. Static Routing
+### 3. Static Routing
 
 Semua device yang terhubung ke router lain berada pada subnet/jaringan yang berbeda. Agar mereka bisa saling berkomunikasi maka router `Lain` harus dikonfigurasi dengan static routing.
 
@@ -89,6 +89,6 @@ Jaringan akan dipetakan ke interface tujuan dari jaringan tersebut. Harapannya c
 10.67.3.0/24 dev eth3 proto kernel scope link src 10.67.3.1
 ```
 
-## 4. Firewall dan iptables
+### 4. Firewall dan iptables
 
 Meskipun router sudah terhubung dengan sebuah adapter NAT. Client yang terhubung tidak bisa langsung terkoneksi ke internet. Router perlu dikonfigurasi dengan sebuah firewall untuk meneruskan akses internet yang dimiliki router ke client yang terhubung.
