@@ -1,4 +1,3 @@
-Chisa:/etc/vsftpd# cat user_conf/eiri
 # Tolak semua izin baca, tulis, maupun unduh
 write_enable=NO
 download_enable=NO
